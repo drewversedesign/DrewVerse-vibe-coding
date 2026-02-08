@@ -5,10 +5,24 @@
 ▲ Next.js 16.1.6 (Turbopack)
 - Local:         http://localhost:3000
 - Network:       http://192.168.0.2:3000
+- Environments: .env.local, .env
 
 ✓ Starting...
-✓ Ready in 1089ms
- GET / 200 in 1305ms (compile: 470ms, render: 835ms)
- GET / 200 in 113ms (compile: 7ms, render: 106ms)
- POST /api/chat 500 in 136ms (compile: 109ms, render: 27ms)
+✓ Ready in 1146ms
+ GET / 200 in 1966ms (compile: 983ms, render: 983ms)
+ GET / 200 in 120ms (compile: 7ms, render: 113ms)
+Gemini Error: Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent: [404 Not Found] models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+    at async POST (src/app/api/chat/route.ts:47:20)
+  45 |     `;
+  46 |
+> 47 |     const result = await model.generateContent(prompt);
+     |                    ^
+  48 |     const responseText = result.response.text();
+  49 |
+  50 |     try { {
+  status: 404,
+  statusText: 'Not Found',
+  errorDetails: undefined
+}
+ POST /api/chat 500 in 426ms (compile: 117ms, render: 309ms)
 [?25h
