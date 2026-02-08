@@ -306,7 +306,7 @@ export default function Home() {
       </main>
 
       <Notification show={!!notification} type={notification || "db"} onClose={() => setNotification(null)} />
-      <DeployModal show={showDeploy} onClose={() => setShowDeploy(false)} projectName={files.length > 0 ? files[0].name : "My Project"} />
+      <DeployModal show={showDeploy} onClose={() => setShowDeploy(false)} projectName={files.length > 0 ? files[0].name : "My Project"} files={files} />
     </div>
   );
 }

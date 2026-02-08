@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Rocket, Check, Loader2, Globe, Github, X } from 'lucide-react';
+import { Rocket, Check, Loader2, Globe, Github, X, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface DeployModalProps {
   show: boolean;
   onClose: () => void;
   projectName: string;
+  files: any[];
 }
 
-export const DeployModal = ({ show, onClose, projectName }: DeployModalProps) => {
+export const DeployModal = ({ show, onClose, projectName, files }: DeployModalProps) => {
   const [step, setStep] = useState(0);
   const [url, setUrl] = useState('');
+  const [error, setError] = useState('');
+  const [isDeploying, setIsDeploying] = useState(false);
 
   const steps = [
     "Preparing project bundle...",
@@ -20,22 +23,42 @@ export const DeployModal = ({ show, onClose, projectName }: DeployModalProps) =>
     "Deploying to global CDN..."
   ];
 
-  useEffect(() => {
-    if (show) {
-      setStep(0);
-      let currentStep = 0;
-      const interval = setInterval(() => {
-        currentStep++;
-        if (currentStep < steps.length) {
-          setStep(currentStep);
-        } else {
-          setUrl(`https://${projectName.toLowerCase().replace(/\s+/g, '-')}.onrender.com`);
-          clearInterval(interval);
+  const handleDeploy = async () => {
+    setIsDeploying(true);
+    setError('');
+    setStep(0);
+
+    try {
+      // Simulate step-by-step progress for the UI
+      for (let i = 0; i < steps.length; i++) {
+        setStep(i);
+        await new Promise(resolve => setTimeout(resolve, i === 0 ? 1000 : 2000));
+
+        if (i === 1) {
+          // Actual API call starts here
+          const res = await fetch('/api/deploy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projectName, files })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Deployment failed");
+          if (i === steps.length - 1) setUrl(data.url);
         }
-      }, 1500);
-      return () => clearInterval(interval);
+      }
+      setUrl(`https://${projectName.toLowerCase().replace(/\s+/g, '-')}.onrender.com`);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsDeploying(false);
     }
-  }, [show, projectName]);
+  };
+
+  useEffect(() => {
+    if (show && !isDeploying && !url) {
+      handleDeploy();
+    }
+  }, [show]);
 
   return (
     <AnimatePresence>
@@ -58,7 +81,21 @@ export const DeployModal = ({ show, onClose, projectName }: DeployModalProps) =>
             </div>
 
             <div className="p-6 space-y-6">
-              {!url ? (
+              {error ? (
+                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl space-y-3">
+                  <div className="flex items-center gap-2 text-red-500">
+                    <AlertCircle className="w-5 h-5" />
+                    <span className="text-sm font-bold">Deployment Failed</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{error}</p>
+                  <button
+                    onClick={handleDeploy}
+                    className="text-xs font-bold text-red-500 hover:underline"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : !url ? (
                 <div className="space-y-4">
                   {steps.map((s, i) => (
                     <div key={i} className="flex items-center gap-3">
