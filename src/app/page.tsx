@@ -79,8 +79,8 @@ export default function Home() {
       setFiles(result.files);
       setMessages(prev => [...prev, { role: "assistant", content: result.explanation }]);
 
-      if (result.requiresNeonDb) setNotification("db");
-      else if (result.requiresNeonAuth) setNotification("auth");
+      if (result.requiresProvisioning?.database) setNotification("db");
+      else if (result.requiresProvisioning?.auth) setNotification("auth");
 
       if (!selectedFile) {
         const findApp = (nodes: FileNode[]): FileNode | undefined => {
@@ -351,7 +351,7 @@ export default function Home() {
       )}
       </main>
 
-      <Notification show={!!notification} type={notification || "db"} onClose={() => setNotification(null)} />
+      <Notification show={!!notification} type={notification || "db"} onClose={() => setNotification(null)} onProvision={async () => { const res = await fetch("/api/database", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ projectName: files[0]?.name || "Project" }) }); if (!res.ok) throw new Error("Failed"); }} />
       <DeployModal show={showDeploy} onClose={() => setShowDeploy(false)} projectName={files.length > 0 ? files[0].name : "My Project"} files={files} />
     </div>
   );
