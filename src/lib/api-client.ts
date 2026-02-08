@@ -7,9 +7,11 @@ export async function generateProject(messages: ChatMessage[], currentFiles: Fil
     body: JSON.stringify({ messages, currentFiles, brandConfig }),
   });
 
+  const data = await response.json();
+
   if (!response.ok) {
-    throw new Error("Failed to generate project");
+    throw new Error(data.error || "Failed to generate project");
   }
 
-  return response.json();
+  return data;
 }

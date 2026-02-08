@@ -22,7 +22,7 @@ export function Chat({ onSend, messages, isLoading }: ChatProps) {
   };
 
   return (
-    <div className="flex flex-col h-full border-l border-[#27272a] w-80 bg-[#09090b]">
+    <div className="flex flex-col h-full bg-[#09090b]">
       <div className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b border-[#27272a]">
         Activity
       </div>

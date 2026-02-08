@@ -2,16 +2,24 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { SYSTEM_PROMPT } from "@/lib/system-prompt";
 import { NextResponse } from "next/server";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-pro",
-  generationConfig: {
-    responseMimeType: "application/json",
-  }
-});
-
 export async function POST(req: Request) {
   try {
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      return NextResponse.json({
+        error: "GEMINI_API_KEY is missing. Please add it to your environment variables."
+      }, { status: 500 });
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-pro",
+      generationConfig: {
+        responseMimeType: "application/json",
+      }
+    });
+
     const { messages, currentFiles, brandConfig } = await req.json();
 
     const brandSection = brandConfig ? `
@@ -42,9 +50,16 @@ export async function POST(req: Request) {
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
 
-    return NextResponse.json(JSON.parse(responseText));
-  } catch (error) {
+    try {
+      return NextResponse.json(JSON.parse(responseText));
+    } catch (e) {
+      console.error("JSON Parse Error:", responseText);
+      return NextResponse.json({ error: "AI returned invalid JSON. Please try again." }, { status: 500 });
+    }
+  } catch (error: any) {
     console.error("Gemini Error:", error);
-    return NextResponse.json({ error: "Failed to generate content" }, { status: 500 });
+    return NextResponse.json({
+      error: error.message || "Failed to generate content. Please check your API key and quota."
+    }, { status: 500 });
   }
 }

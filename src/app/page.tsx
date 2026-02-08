@@ -19,7 +19,10 @@ import {
   History,
   Palette,
   Search,
-  ChevronLeft
+  ChevronLeft,
+  Menu,
+  MessageSquare,
+  Briefcase
 } from "lucide-react";
 import JSZip from "jszip";
 
@@ -45,6 +48,17 @@ export default function Home() {
   });
   const [notification, setNotification] = useState<"db" | "auth" | null>(null);
   const [showDeploy, setShowDeploy] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileTab, setMobileTab] = useState<"chat" | "preview" | "code" | "project">("chat");
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleSend = async (content: string, isAudit = false) => {
     const userMsg: ChatMessage = { role: "user", content, isAudit };
@@ -83,7 +97,7 @@ export default function Home() {
       }
     } catch (error) {
       console.error(error);
-      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, I encountered an error. Please try again." }]);
+      setMessages(prev => [...prev, { role: "assistant", content: error instanceof Error ? error.message : "Sorry, I encountered an error. Please try again." }]);
     } finally {
       setIsLoading(false);
     }
@@ -134,7 +148,7 @@ export default function Home() {
             className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-[#18181b] hover:bg-[#27272a] rounded-md border border-[#27272a] transition-colors disabled:opacity-50"
           >
             <Search className="w-4 h-4" />
-            AI Audit
+            <span className="hidden sm:inline">AI Audit</span>
           </button>
           <button
             onClick={() => setShowDeploy(true)}
@@ -142,7 +156,7 @@ export default function Home() {
             className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors disabled:opacity-50"
           >
             <Rocket className="w-4 h-4" />
-            Deploy
+            <span className="hidden sm:inline">Deploy</span>
           </button>
           <div className="w-[1px] h-4 bg-[#27272a] mx-1" />
           <button
@@ -151,14 +165,14 @@ export default function Home() {
             className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-[#18181b] hover:bg-[#27272a] rounded-md border border-[#27272a] transition-colors disabled:opacity-50"
           >
             <Download className="w-4 h-4" />
-            Export ZIP
+            <span className="hidden sm:inline">Export ZIP</span>
           </button>
         </div>
       </header>
 
-      <main className="flex-1 flex overflow-hidden">
+      <main className="flex-1 flex overflow-hidden relative">
         {/* Sidebar Tabs */}
-        <div className="flex border-r border-[#27272a]">
+        <div className={cn("border-r border-[#27272a] flex", isMobile ? (mobileTab === "project" ? "fixed inset-0 z-50 bg-[#020202] pt-14 pb-16" : "hidden") : "flex")}>
           <div className="w-12 border-r border-[#27272a] flex flex-col items-center py-4 gap-4">
             <button
               onClick={() => {setShowHistory(false); setShowDesign(false)}}
@@ -180,7 +194,7 @@ export default function Home() {
             </button>
           </div>
 
-          <div className="w-64 overflow-hidden">
+          <div className={cn("overflow-hidden", isMobile ? "flex-1" : "w-64")}>
             {showHistory ? (
               <div className="h-full flex flex-col">
                 <div className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b border-[#27272a]">History</div>
@@ -252,7 +266,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col bg-[#020202]">
+        <div className={cn("flex-1 flex flex-col bg-[#020202]", isMobile ? (mobileTab === "preview" || mobileTab === "code" ? "flex" : "hidden") : "flex")}>
           <div className="flex items-center gap-1 p-2 border-b border-[#27272a]">
             <button
               onClick={() => setActiveTab("preview")}
@@ -302,7 +316,39 @@ export default function Home() {
             )}
           </div>
         </div>
-        <Chat messages={messages} onSend={handleSend} isLoading={isLoading} />
+        <div className={cn(isMobile ? (mobileTab === "chat" ? "fixed inset-0 z-50 bg-[#020202] pt-14 pb-16" : "hidden") : "w-96 flex flex-col border-l border-[#27272a] bg-[#09090b]")}><Chat messages={messages} onSend={handleSend} isLoading={isLoading} /></div>
+      {isMobile && (
+        <div className="fixed bottom-0 left-0 right-0 h-16 bg-[#09090b] border-t border-[#27272a] flex items-center justify-around z-[60] px-2">
+          <button
+            onClick={() => setMobileTab("chat")}
+            className={cn("flex flex-col items-center gap-1 p-2 rounded-lg transition-colors", mobileTab === "chat" ? "text-blue-400" : "text-muted-foreground")}
+          >
+            <MessageSquare className="w-5 h-5" />
+            <span className="text-[10px]">Chat</span>
+          </button>
+          <button
+            onClick={() => {setMobileTab("preview"); setActiveTab("preview")}}
+            className={cn("flex flex-col items-center gap-1 p-2 rounded-lg transition-colors", mobileTab === "preview" ? "text-blue-400" : "text-muted-foreground")}
+          >
+            <Monitor className="w-5 h-5" />
+            <span className="text-[10px]">Preview</span>
+          </button>
+          <button
+            onClick={() => {setMobileTab("code"); setActiveTab("code")}}
+            className={cn("flex flex-col items-center gap-1 p-2 rounded-lg transition-colors", mobileTab === "code" ? "text-blue-400" : "text-muted-foreground")}
+          >
+            <CodeIcon className="w-5 h-5" />
+            <span className="text-[10px]">Code</span>
+          </button>
+          <button
+            onClick={() => setMobileTab("project")}
+            className={cn("flex flex-col items-center gap-1 p-2 rounded-lg transition-colors", mobileTab === "project" ? "text-blue-400" : "text-muted-foreground")}
+          >
+            <Briefcase className="w-5 h-5" />
+            <span className="text-[10px]">Project</span>
+          </button>
+        </div>
+      )}
       </main>
 
       <Notification show={!!notification} type={notification || "db"} onClose={() => setNotification(null)} />
