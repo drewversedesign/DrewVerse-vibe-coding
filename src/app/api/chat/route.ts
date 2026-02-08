@@ -12,16 +12,31 @@ const model = genAI.getGenerativeModel({
 
 export async function POST(req: Request) {
   try {
-    const { messages, currentFiles } = await req.json();
+    const { messages, currentFiles, brandConfig } = await req.json();
+
+    const brandSection = brandConfig ? `
+      ### Brand Configuration:
+      - Primary Color: ${brandConfig.primaryColor}
+      - Border Radius: ${brandConfig.borderRadius}
+      - Font Family: ${brandConfig.fontFamily}
+      Apply these tokens globally in the CSS and component styles.
+    ` : "";
+
+    const lastMessage = messages[messages.length - 1];
+    const isAudit = lastMessage.isAudit;
 
     const prompt = `
       ${SYSTEM_PROMPT}
+
+      ${brandSection}
+
+      ${isAudit ? "### TASK: Perform a comprehensive Design Audit and improve the project." : ""}
 
       Current Project State:
       ${JSON.stringify(currentFiles, null, 2)}
 
       User Request:
-      ${messages[messages.length - 1].content}
+      ${lastMessage.content}
     `;
 
     const result = await model.generateContent(prompt);

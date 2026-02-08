@@ -1,10 +1,10 @@
-import { ChatMessage, FileNode } from "@/types";
+import { ChatMessage, FileNode, BrandConfig } from "@/types";
 
-export async function generateProject(messages: ChatMessage[], currentFiles: FileNode[]) {
+export async function generateProject(messages: ChatMessage[], currentFiles: FileNode[], brandConfig: BrandConfig) {
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages, currentFiles }),
+    body: JSON.stringify({ messages, currentFiles, brandConfig }),
   });
 
   if (!response.ok) {

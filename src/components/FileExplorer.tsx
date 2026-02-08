@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 interface FileExplorerProps {
   files: FileNode[];
   onFileSelect: (file: FileNode) => void;
-  selectedFile?: FileNode;
+  selectedFile: FileNode | null;
 }
 
 export function FileExplorer({ files, onFileSelect, selectedFile }: FileExplorerProps) {
@@ -41,7 +41,7 @@ function FileNodeItem({
   node: FileNode;
   level: number;
   onFileSelect: (file: FileNode) => void;
-  selectedFile?: FileNode;
+  selectedFile: FileNode | null;
 }) {
   const [isOpen, setIsOpen] = useState(true);
   const isSelected = selectedFile?.name === node.name;
